@@ -24,12 +24,12 @@ void main() async {
     ),
     initialRoute: '/', //sharedPref.getString("token")==null?'/':'/screen',
     routes: {
-      // '/user': (context) => const screen(),
-      // '/admin': (context) => const screenadmin(),
-      // '/': (context) => const login(),
-      // '/r': (context) => const patients(),
+      '/user': (context) => const screen(),
+      '/admin': (context) => const screenadmin(),
+      '/': (context) => const login(),
+      '/r': (context) => const patients(),
 
-      '/': (context) => const firebasetest(),
+      // '/': (context) => const firebasetest(),
     },
   ));
   // doWhenWindowReady(() {

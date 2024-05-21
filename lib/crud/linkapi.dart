@@ -1,4 +1,4 @@
-const String linkServerName = "http://192.168.0.104/doctorAPI";
+const String linkServerName = "http://192.168.1.193/doctorAPI";
 
 //Login
 const String Apilogin = "$linkServerName/login";

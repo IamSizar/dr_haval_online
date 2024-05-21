@@ -1,9 +1,13 @@
+import 'package:audioplayers/audioplayers.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doctor/screen/patientsadd/screen/patientsadd.dart';
 import 'package:doctor/screen/patientsdate/screen/patientsdate.dart';
 import 'package:doctor/screen/patientsold/screen/patientsoldd.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:http/http.dart';
+import 'package:lottie/lottie.dart';
 
 class screen extends StatefulWidget {
   const screen({super.key});
@@ -13,11 +17,18 @@ class screen extends StatefulWidget {
 }
 
 class _screenState extends State<screen> {
+  String comming = '';
+  var haveRing = false;
   Map bt = {
     'Patients Add': 'Patients Add',
     'Patients Date': 'Patients Date',
     'Patients Old': 'Patients Old'
   };
+  updateSwitch() async {
+    CollectionReference Update = FirebaseFirestore.instance.collection('come');
+    await Update.doc('admin').update({'switch': 'false'});
+  }
+
   String buton = 'Patients Add';
   showScreen(String nameScreen) {
     if (nameScreen == 'Patients Add') {
@@ -27,6 +38,34 @@ class _screenState extends State<screen> {
     } else if (nameScreen == 'Patients Old') {
       return const patientsoldd();
     }
+  }
+
+  final player = AudioPlayer();
+  getNotif(bool start) {
+    player.play(
+      AssetSource(
+        'sound/sound02.mp3',
+      ),
+    );
+    if (start == true) {
+      player.onPlayerComplete.listen((event) {
+        player.play(
+          AssetSource('sound/sound02.mp3'),
+        );
+      });
+    }
+    if (start == false) {
+      player.stop();
+    }
+  }
+
+  common() async {
+    DocumentSnapshot come =
+        await FirebaseFirestore.instance.collection('come').doc('admin').get();
+    setState(() {
+      comming = come['switch'].toString();
+    });
+    print(comming);
   }
 
   @override
@@ -83,9 +122,65 @@ class _screenState extends State<screen> {
                           Color(0xff0E9CAB)),
                     ],
                   ),
+                  Container(
+                    height: 100,
+                    width: 100,
+                    child: StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection("come")
+                          .snapshots(),
+                      builder:
+                          (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                        if (!snapshot.hasData) {
+                          return Center(
+                            child: Text(''),
+                          );
+                        } else {
+                          return ListView(
+                            children: snapshot.data!.docs
+                                .map(
+                                  (doc) => doc['switch'].toString() == 'true'
+                                      ? GestureDetector(
+                                          onLongPress: () {
+                                            updateSwitch();
+                                          },
+                                          child: Column(
+                                            children: [
+                                              Container(
+                                                height: 100,
+                                                width: 100,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(50),
+                                                  border: Border.all(
+                                                      color: Color(0xff0E9CAB),
+                                                      width: 2),
+                                                ),
+                                                child: Lottie.asset(
+                                                  'assets/animation/not22.json',
+                                                ),
+                                              ),
+                                              Container(child: getNotif(true))
+                                            ],
+                                          ),
+                                        )
+                                      : Container(
+                                          child: getNotif(false),
+                                        ),
+                                )
+                                .toList(),
+                          );
+                        }
+                        // ...
+                      },
+                    ),
+                  ),
                   button_menu(
                       'Logout', Icons.logout_outlined, Color(0xff0E9CAB)),
-                  SizedBox()
+                  const SizedBox(
+                    height: 100,
+                  ),
                 ]),
           )));
 

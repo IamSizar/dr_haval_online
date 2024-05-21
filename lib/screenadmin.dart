@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doctor/AllOfToday/all_of_today.dart';
 import 'package:doctor/screen/adduser/screen/adduser.dart';
 import 'package:doctor/screen/dashbord/screen/dashbord.dart';
 import 'package:doctor/screen/patients/screen/patients.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -14,6 +16,8 @@ class screenadmin extends StatefulWidget {
 }
 
 class _screenadminState extends State<screenadmin> {
+  bool isSwitched = false;
+  var getswitch = '';
   Map bt = {
     'Patients': 'Patients',
     'Add User': 'Add User',
@@ -31,6 +35,35 @@ class _screenadminState extends State<screenadmin> {
     } else if (nameScreen == 'AllOfToday') {
       return const AllOfToday();
     }
+  }
+
+  testbool() async {
+    DocumentSnapshot come =
+        await FirebaseFirestore.instance.collection('come').doc('admin').get();
+    setState(() {
+      getswitch = come['switch'].toString();
+    });
+    if (getswitch == 'true') {
+      setState(() {
+        isSwitched = true;
+      });
+    } else {
+      setState(() {
+        isSwitched = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    testbool();
+    super.initState();
+  }
+
+  updateSwitch() async {
+    CollectionReference Update = FirebaseFirestore.instance.collection('come');
+    await Update.doc('admin').update({'switch': isSwitched});
   }
 
   @override
@@ -89,6 +122,44 @@ class _screenadminState extends State<screenadmin> {
                       button_menu('AllOfToday',
                           Icons.calendar_view_month_rounded, Color(0xff0E9CAB)),
                     ],
+                  ),
+                  Container(
+                    height: 100,
+                    width: 100,
+                    child: StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection("come")
+                          .snapshots(),
+                      builder:
+                          (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                        if (!snapshot.hasData) {
+                          return Center(
+                            child: Text(''),
+                          );
+                        } else {
+                          return ListView(
+                            children: snapshot.data!.docs
+                                .map(
+                                  (doc) => Switch(
+                                      activeColor:
+                                          Color.fromARGB(255, 255, 0, 0),
+                                      value: doc['switch'].toString() == 'true'
+                                          ? isSwitched = true
+                                          : isSwitched = false,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          isSwitched = value;
+                                        });
+                                        // print(isSwitched);
+                                        updateSwitch();
+                                      }),
+                                )
+                                .toList(),
+                          );
+                        }
+                        // ...
+                      },
+                    ),
                   ),
                   button_menu(
                       'Logout', Icons.logout_outlined, Color(0xff0E9CAB)),
